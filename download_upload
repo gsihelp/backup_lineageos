@@ -1,0 +1,40 @@
+#!/bin/bash
+
+. ~/.bashrc.local
+
+export GITHUB_TOKEN=github_pat_CHANGEME
+
+#sudo apt-get install -y rename > /dev/null 2>&1
+#go install github.com/github-release/github-release@latest
+rm -f index.html*
+
+myArray=("crosshatch" "sargo" "bonito" "flame" "coral" "sunfish" "bramble" "redfin" "barbet" "marlin")
+myArray=("taimen" "blueline" "crosshatch" "sargo" "bonito" "flame" "coral" "sunfish" "bramble" "redfin" "barbet" "marlin")
+myArray=("sailfish" "walleye" "taimen" "blueline" "crosshatch" "sargo" "bonito" "flame" "coral" "sunfish" "bramble" "redfin" "barbet" "oriole" "raven" "bluejay" "panther" "cheetah" "lynx" "marlin")
+RANDOM_DEVICE=${myArray[ $RANDOM % ${#myArray[@]} ]}
+echo $RANDOM_DEVICE
+github-release release \
+    --user gsihelp \
+    --repo backup_lineageos \
+    --tag $RANDOM_DEVICE 
+
+LOS_ZIP_URL=$(curl -sSL \
+    https://download.lineageos.org/api/v1/$RANDOM_DEVICE/nightly/eng.root.20221023.162209 \
+    | jq  -r '.response[0].url')
+echo $LOS_ZIP_URL
+LOS_ZIP_FILENAME=$(curl -sSL \
+    https://download.lineageos.org/api/v1/$RANDOM_DEVICE/nightly/eng.root.20221023.162209 \
+    | jq  -r '.response[0].filename')
+curl -sSL $LOS_ZIP_URL -o $LOS_ZIP_FILENAME
+
+for i in `find . -type f \( -iname lineage\*m -o -iname lineage\*.zip -o -iname lineage\*img \) -printf '%f\n'`
+do
+echo $i
+github-release upload -R --user gsihelp \
+   --repo backup_lineageos \
+   --tag $RANDOM_DEVICE \
+   --file $i --name $i
+rm -fr $i
+sleep 2
+done
+
