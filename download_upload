@@ -1,32 +1,31 @@
 #!/bin/bash
 
+export GITHUB_TOKEN=github_pat_CHANGEME
 touch ~/.bashrc.local
 . ~/.bashrc.local
 
-export GITHUB_TOKEN=github_pat_CHANGEME
-
 #sudo apt-get install -y rename > /dev/null 2>&1
-#go install github.com/github-release/github-release@latest
+go install github.com/github-release/github-release@latest > /dev/null 2>&1
 rm -f index.html*
 
-myArray=("crosshatch" "sargo" "bonito" "flame" "coral" "sunfish" "bramble" "redfin" "barbet" "marlin")
-myArray=("taimen" "blueline" "crosshatch" "sargo" "bonito" "flame" "coral" "sunfish" "bramble" "redfin" "barbet" "marlin")
 myArray=("sailfish" "walleye" "taimen" "blueline" "crosshatch" "sargo" "bonito" "flame" "coral" "sunfish" "bramble" "redfin" "barbet" "oriole" "raven" "bluejay" "panther" "cheetah" "lynx" "marlin")
 RANDOM_DEVICE=${myArray[ $RANDOM % ${#myArray[@]} ]}
 echo $RANDOM_DEVICE
+
 github-release release \
     --user gsihelp \
     --repo backup_lineageos \
-    --tag $RANDOM_DEVICE 
+    --tag $RANDOM_DEVICE
 
-LOS_ZIP_URL=$(curl -sSL \
+curl -sSL \
     https://download.lineageos.org/api/v1/$RANDOM_DEVICE/nightly/eng.root.20221023.162209 \
-    | jq  -r '.response[0].url')
+    -o device.json
+LOS_ZIP_URL=$(cat device.json | jq  -r '.response[0].url')
 echo $LOS_ZIP_URL
-LOS_ZIP_FILENAME=$(curl -sSL \
-    https://download.lineageos.org/api/v1/$RANDOM_DEVICE/nightly/eng.root.20221023.162209 \
-    | jq  -r '.response[0].filename')
-curl -sSL $LOS_ZIP_URL -o $LOS_ZIP_FILENAME
+LOS_ZIP_FILENAME=$(cat device.json | jq  -r '.response[0].filename')
+echo $LOS_ZIP_FILENAME
+
+curl -SL --progress-bar $LOS_ZIP_URL -o $LOS_ZIP_FILENAME
 
 for i in `find . -type f \( -iname lineage\*m -o -iname lineage\*.zip -o -iname lineage\*img \) -printf '%f\n'`
 do
@@ -36,6 +35,6 @@ github-release upload -R --user gsihelp \
    --tag $RANDOM_DEVICE \
    --file $i --name $i
 rm -fr $i
-sleep 2
+
 done
 
