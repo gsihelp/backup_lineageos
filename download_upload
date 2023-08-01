@@ -1,5 +1,6 @@
 #!/bin/bash
 
+touch ~/.bashrc.local
 . ~/.bashrc.local
 
 export GITHUB_TOKEN=github_pat_CHANGEME
